@@ -1,0 +1,1 @@
+Java Spring Boot project for the management of culinary recipes, created to learn the best practices of Domain Driven Design.
