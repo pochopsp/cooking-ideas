@@ -4,10 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CookingIdeasApplication {
+public class Main {
 
-	public static void main(String[] args) {
-		SpringApplication.run(CookingIdeasApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(Main.class, args);
+    }
 }
