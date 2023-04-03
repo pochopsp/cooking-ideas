@@ -5,11 +5,12 @@ import com.github.cookingideas.domain.entity.Recipe;
 import com.github.cookingideas.domain.repository.RecipeRepository;
 import com.github.cookingideas.domain.usecase.GetRecipeById;
 import com.github.cookingideas.infrastructure.repository.InMemoryRecipeRepository;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RecipeConfiguration {
@@ -20,33 +21,33 @@ public class RecipeConfiguration {
     }
 
     @Bean
-    public InMemoryRecipeRepository provideInMemoryRecipeRepository(Map<Long, Recipe> storage) {
+    public InMemoryRecipeRepository provideInMemoryRecipeRepository(Map<Recipe.Id, Recipe> storage) {
         return new InMemoryRecipeRepository(storage);
     }
 
     @Bean
-    public Map<Long, Recipe> provideInMemoryRecipeRepositoryStorageWithSampleData() {
-        Map<Long, Recipe> storage = new ConcurrentHashMap<>();
-        storage.put(1L, new Recipe(
-            1L,
+    public Map<Recipe.Id, Recipe> provideInMemoryRecipeRepositoryStorageWithSampleData() {
+        Map<Recipe.Id, Recipe> storage = new ConcurrentHashMap<>();
+        storage.put(new Recipe.Id(1L), new Recipe(
+            new Recipe.Id(1L),
             "Pizza margherita",
             "Meglio se vai in pizzeria",
             List.of(
-                new Ingredient(1L, "Farina"),
-                new Ingredient(2L, "Acqua"),
-                new Ingredient(3L, "Lievito"),
-                new Ingredient(4L, "Sale"),
-                new Ingredient(5L, "Pomodoro"),
-                new Ingredient(6L, "Mozzarella")
+                new Ingredient(new Ingredient.Id(1L), "Farina"),
+                new Ingredient(new Ingredient.Id(2L), "Acqua"),
+                new Ingredient(new Ingredient.Id(3L), "Lievito"),
+                new Ingredient(new Ingredient.Id(4L), "Sale"),
+                new Ingredient(new Ingredient.Id(5L), "Pomodoro"),
+                new Ingredient(new Ingredient.Id(6L), "Mozzarella")
             )));
 
-        storage.put(2L, new Recipe(
-            2L,
+        storage.put(new Recipe.Id(2L), new Recipe(
+            new Recipe.Id(2L),
             "Caprese",
             "Taglia la mozzarella ed il pomodoro e mettili in un piatto",
             List.of(
-                new Ingredient(5L, "Pomodoro"),
-                new Ingredient(6L, "Mozzarella")
+                new Ingredient(new Ingredient.Id(5L), "Pomodoro"),
+                new Ingredient(new Ingredient.Id(6L), "Mozzarella")
             )));
 
         return storage;
