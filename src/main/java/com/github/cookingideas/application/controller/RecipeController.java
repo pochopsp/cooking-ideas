@@ -1,5 +1,7 @@
 package com.github.cookingideas.application.controller;
 
+import com.github.cookingideas.application.dto.RecipeDTO;
+import com.github.cookingideas.domain.entity.Recipe;
 import com.github.cookingideas.domain.usecase.GetRecipeById;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,16 +10,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("recipe")
-public class Recipe {
+public class RecipeController {
 
     private final GetRecipeById getRecipeById;
 
-    public Recipe(GetRecipeById getRecipeById) {
+    public RecipeController(GetRecipeById getRecipeById) {
         this.getRecipeById = getRecipeById;
     }
 
     @GetMapping("/{id}")
-    public com.github.cookingideas.domain.entity.Recipe getBook(@PathVariable long id) {
-        return getRecipeById.execute(id).orElse(null);
+    public RecipeDTO getBook(@PathVariable long id) {
+        return getRecipeById.execute(new Recipe.Id(id))
+            .map(RecipeDTO::from)
+            .orElse(null);
     }
 }

@@ -1,8 +1,8 @@
 package com.github.cookingideas.domain.usecase;
 
 import com.github.cookingideas.domain.entity.Recipe;
-import com.github.cookingideas.domain.exception.IllegalRecipeIdException;
 import com.github.cookingideas.domain.repository.RecipeRepository;
+
 import java.util.Optional;
 
 public class GetRecipeById {
@@ -13,10 +13,7 @@ public class GetRecipeById {
         this.repository = repository;
     }
 
-    public Optional<Recipe> execute(long id) {
-        if (id <= 0) {
-            throw new IllegalRecipeIdException();
-        }
+    public Optional<Recipe> execute(Recipe.Id id) {
         return repository.get(id);
     }
 }
