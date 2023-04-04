@@ -1,4 +1,4 @@
-package com.github.cookingideas.domain.usecase;
+package com.github.cookingideas.domain.service;
 
 import com.github.cookingideas.domain.entity.Ingredient;
 import com.github.cookingideas.domain.entity.Recipe;
@@ -12,10 +12,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class GetRecipeByIdTest {
+class RecipeServiceTest {
 
     private final RecipeRepository repository = new InMemoryRecipeRepository(new HashMap<>());
-    private final GetRecipeById getRecipeById = new GetRecipeById(repository);
+    private final RecipeService recipeService = new RecipeService(repository);
 
     @Test
     @DisplayName("return the Recipe")
@@ -31,7 +31,7 @@ class GetRecipeByIdTest {
             ));
         repository.store(recipe);
 
-        assertThat(getRecipeById.execute(recipeId))
+        assertThat(recipeService.get(recipeId))
             .isPresent()
             .get().usingRecursiveComparison().isEqualTo(recipe);
     }
@@ -39,7 +39,7 @@ class GetRecipeByIdTest {
     @Test
     @DisplayName("Return empty optional if the recipe is not found")
     void getReturnEmpty() {
-        assertThat(getRecipeById.execute(new Recipe.Id(1L))).isNotPresent();
+        assertThat(recipeService.get(new Recipe.Id(1L))).isNotPresent();
     }
 
 }
