@@ -3,7 +3,7 @@ package com.github.cookingideas.infrastructure.di;
 import com.github.cookingideas.domain.entity.Ingredient;
 import com.github.cookingideas.domain.entity.Recipe;
 import com.github.cookingideas.domain.repository.RecipeRepository;
-import com.github.cookingideas.domain.usecase.GetRecipeById;
+import com.github.cookingideas.domain.service.RecipeService;
 import com.github.cookingideas.infrastructure.repository.InMemoryRecipeRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,8 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RecipeConfiguration {
 
     @Bean
-    public GetRecipeById provideGetRecipeById(RecipeRepository repository) {
-        return new GetRecipeById(repository);
+    public RecipeService provideRecipeService(RecipeRepository repository) {
+        return new RecipeService(repository);
     }
 
     @Bean
