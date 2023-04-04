@@ -13,7 +13,7 @@ Design.
 First run docker containers
 
 ```shell
-$ docker-composte up -d
+$ docker-compose up -d
 ```
 
 then run the spring app as usual
