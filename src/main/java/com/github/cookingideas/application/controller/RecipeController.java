@@ -19,7 +19,7 @@ public class RecipeController {
     }
 
     @GetMapping("/{id}")
-    public RecipeDTO getBook(@PathVariable long id) {
+    public RecipeDTO getRecipe(@PathVariable long id) {
         return recipeService.get(new Recipe.Id(id))
             .map(RecipeDTO::from)
             .orElse(null);
