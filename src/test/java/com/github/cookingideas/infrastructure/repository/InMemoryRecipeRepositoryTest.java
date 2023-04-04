@@ -17,7 +17,7 @@ class InMemoryRecipeRepositoryTest {
     private final RecipeRepository repository = new InMemoryRecipeRepository(new HashMap<>());
 
     @Test
-    @DisplayName("If the storage is empty, fist Id is 1")
+    @DisplayName("If the storage is empty, first Id is 1")
     void idForEmptyStorage() {
         Recipe.Id expected = new Recipe.Id(1L);
         assertThat(repository.getNextId()).isEqualTo(expected);
@@ -42,7 +42,7 @@ class InMemoryRecipeRepositoryTest {
     }
 
     @Test
-    @DisplayName("If the storage is not empty, fist Id is next long")
+    @DisplayName("If the storage is not empty, first Id is next long")
     void idForNotEmptyStorage() {
         Recipe.Id recipeId = new Recipe.Id(1L);
         Recipe recipe = new Recipe(
