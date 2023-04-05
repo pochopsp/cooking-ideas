@@ -54,4 +54,9 @@ public class InMemoryRecipeRepository implements RecipeRepository {
     public void store(Recipe recipe) {
         recipes.put(recipe.id(), recipe);
     }
+
+    @Override
+    public void delete(Recipe.Id id) {
+        recipes.remove(id);
+    }
 }

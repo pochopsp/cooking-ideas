@@ -22,7 +22,7 @@ then run the spring app as usual
 
 ### Using colima on osx
 
-To be able to run tests using testcontainer on colima, rememnber to define following evirontment variables:
+To be able to run tests using testcontainer on colima, remember to define following environment variables:
 
 ```shell
 export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"

@@ -36,7 +36,7 @@ public class DatabaseRecipeRepositoryTest extends RecipeRepositoryTest {
         dataSource.setPassword(database.getPassword());
         dataSource.setDatabaseName(database.getDatabaseName());
     }
-    
+
     @Autowired
     public DatabaseRecipeRepositoryTest(DatabaseRecipeRepository repository) {
         super(() -> repository);

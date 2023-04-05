@@ -30,4 +30,8 @@ public class RecipeService {
         repository.store(recipe);
         return recipe;
     }
+
+    public void delete(Recipe.Id id) {
+        repository.delete(id);
+    }
 }

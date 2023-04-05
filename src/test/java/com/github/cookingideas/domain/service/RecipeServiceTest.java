@@ -94,6 +94,16 @@ class RecipeServiceTest {
         assertThat(page.elements()).isEmpty();
     }
 
+    @Test
+    @DisplayName("delete a Recipe")
+    void deleteARecipe() {
+        Recipe recipe = storeRandomRecipe();
+        assertThat(recipeService.get(recipe.id())).isPresent();
+        recipeService.delete(recipe.id());
+
+        assertThat(recipeService.get(recipe.id())).isNotPresent();
+    }
+
     private Recipe storeRandomRecipe() {
         String name = easyRandom.nextObject(String.class);
         String description = easyRandom.nextObject(String.class);

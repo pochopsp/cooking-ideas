@@ -5,7 +5,6 @@ import com.github.cookingideas.application.dto.RecipeResponse;
 import com.github.cookingideas.domain.repository.Page;
 import io.restassured.RestAssured;
 import io.restassured.common.mapper.TypeRef;
-import org.apache.http.HttpStatus;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,8 +27,12 @@ import java.util.List;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -70,20 +73,30 @@ public class RecipeControllerTest {
     }
 
     public RecipeControllerTest() {
-        EasyRandomParameters parameters = new EasyRandomParameters().stringLengthRange(1, 25);
+        EasyRandomParameters parameters = new EasyRandomParameters()
+            .stringLengthRange(1, 25)
+            .collectionSizeRange(1, 10);
         easyRandom = new EasyRandom(parameters);
     }
 
     @Test
+    @DisplayName("Return no content if the entity does not exists")
+    public void noContent() {
+        when().get("/recipe/1").then()
+            .assertThat()
+            .statusCode(NO_CONTENT.value());
+    }
+
+    @Test
     @DisplayName("Store and return a recipe")
-    public void greetingShouldReturnDefaultMessage() {
+    public void storeAndReturn() {
 
         RecipeRequest recipeRequest = easyRandom.nextObject(RecipeRequest.class);
         RecipeResponse savedRecipe = saveRecipe(recipeRequest);
 
-        RecipeResponse retrievedRecipe = get("/recipe/" + savedRecipe.getId()).then()
-            .statusCode(HttpStatus.SC_OK)
+        RecipeResponse retrievedRecipe = when().get("/recipe/" + savedRecipe.getId()).then()
             .assertThat()
+            .statusCode(OK.value())
             .body(matchesJsonSchemaInClasspath("responses/recipe-schema.json"))
             .extract()
             .as(RecipeResponse.class);
@@ -92,10 +105,48 @@ public class RecipeControllerTest {
     }
 
     @Test
+    @DisplayName("Modify a recipe")
+    public void modifyARecipe() {
+
+        RecipeRequest recipeRequest = easyRandom.nextObject(RecipeRequest.class);
+        saveRecipe(recipeRequest);
+
+        recipeRequest.setName(recipeRequest.getName() + "new");
+        recipeRequest.setDescription(recipeRequest.getDescription() + "new");
+        recipeRequest.setIngredients(recipeRequest.getIngredients().subList(0, recipeRequest.getIngredients().size() - 1));
+        RecipeResponse savedRecipe = saveRecipe(recipeRequest);
+
+        RecipeResponse retrievedRecipe = when().get("/recipe/" + savedRecipe.getId()).then()
+            .assertThat()
+            .statusCode(OK.value())
+            .body(matchesJsonSchemaInClasspath("responses/recipe-schema.json"))
+            .extract()
+            .as(RecipeResponse.class);
+
+        assertThat(retrievedRecipe).usingRecursiveComparison().isEqualTo(savedRecipe);
+    }
+
+    @Test
+    @DisplayName("Delete a recipe")
+    public void deleteARecipe() {
+
+        RecipeRequest recipeRequest = easyRandom.nextObject(RecipeRequest.class);
+        RecipeResponse savedRecipe = saveRecipe(recipeRequest);
+
+        when().delete("/recipe/" + savedRecipe.getId()).then()
+            .assertThat()
+            .statusCode(OK.value());
+
+        when().get("/recipe/" + savedRecipe.getId()).then()
+            .assertThat()
+            .statusCode(NO_CONTENT.value());
+    }
+
+    @Test
     @DisplayName("Return bad request if the id is not valid")
     public void badRequest() {
         get("/recipe/0").then()
-            .statusCode(HttpStatus.SC_BAD_REQUEST);
+            .statusCode(BAD_REQUEST.value());
     }
 
     @Test
@@ -112,7 +163,7 @@ public class RecipeControllerTest {
             .param("page", 1)
             .param("size", 5)
             .get("/recipe").then()
-            .statusCode(HttpStatus.SC_OK)
+            .statusCode(OK.value())
             .assertThat()
             .body(matchesJsonSchemaInClasspath("responses/recipePage-schema.json"))
             .extract()
@@ -124,7 +175,7 @@ public class RecipeControllerTest {
             .param("page", 2)
             .param("size", 5)
             .get("/recipe").then()
-            .statusCode(HttpStatus.SC_OK)
+            .statusCode(OK.value())
             .assertThat()
             .body(matchesJsonSchemaInClasspath("responses/recipePage-schema.json"))
             .extract()

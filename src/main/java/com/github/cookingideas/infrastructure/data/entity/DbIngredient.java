@@ -1,6 +1,11 @@
 package com.github.cookingideas.infrastructure.data.entity;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 import static javax.persistence.GenerationType.IDENTITY;
 

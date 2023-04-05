@@ -13,4 +13,6 @@ public interface RecipeRepository {
     Page<Recipe> list(PageRequest pageRequest);
 
     void store(Recipe recipe);
+
+    void delete(Recipe.Id id);
 }

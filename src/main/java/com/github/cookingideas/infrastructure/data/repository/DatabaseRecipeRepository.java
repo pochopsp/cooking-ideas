@@ -57,6 +57,11 @@ interface DatabaseRecipeRepository extends RecipeRepository, JpaRepository<DbRec
         save(dbRecipe);
     }
 
+    @Transactional
+    default void delete(Recipe.Id id) {
+        deleteById(id.value());
+    }
+
     private Recipe toRecipe(DbRecipe dbRecipe) {
         return new Recipe(
             new Recipe.Id(dbRecipe.getId()),

@@ -80,13 +80,35 @@ abstract class RecipeRepositoryTest {
             ingredients
         );
         repository.store(recipe);
-        Recipe modifiedRecipe = new Recipe(recipe.id(), "new name", recipe.description(), recipe.ingredients());
+        Recipe modifiedRecipe = new Recipe(
+            recipe.id(),
+            recipe.name() + "new",
+            recipe.description() + "new",
+            recipe.ingredients().subList(0, 2)
+        );
 
         repository.store(modifiedRecipe);
 
         assertThat(repository.get(recipe.id()))
             .isPresent()
             .get().usingRecursiveComparison().isEqualTo(modifiedRecipe);
+    }
+
+    @Test
+    @DisplayName("delete a Recipe")
+    void delete() {
+        List<Recipe.Ingredient> ingredients = easyRandom.objects(Recipe.Ingredient.class, 5).toList();
+        Recipe recipe = new Recipe(
+            easyRandom.nextObject(Recipe.Id.class),
+            easyRandom.nextObject(String.class),
+            easyRandom.nextObject(String.class),
+            ingredients
+        );
+        repository.store(recipe);
+        assertThat(repository.get(recipe.id())).isPresent();
+
+        repository.delete(recipe.id());
+        assertThat(repository.get(recipe.id())).isNotPresent();
     }
 
     @Test
