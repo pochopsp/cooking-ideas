@@ -8,13 +8,13 @@
         "$ref": "recipe-schema.json"
       }
     },
-    "totalElements": {
+    "pages": {
       "type": "integer"
     }
   },
   "required": [
     "elements",
-    "totalElements"
+    "pages"
   ],
   "additionalProperties": false
 }

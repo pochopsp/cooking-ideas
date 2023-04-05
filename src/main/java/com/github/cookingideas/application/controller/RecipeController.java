@@ -39,12 +39,13 @@ public class RecipeController {
         return recipeMapper.from(recipe);
     }
 
+    // TODO: Not sure if we should have a DTO also for the Page
     @GetMapping
     public Page<RecipeResponse> getPage(@RequestParam int page, @RequestParam int size) {
         Page<Recipe> recipes = recipeService.list(new PageRequest(page, size));
         List<RecipeResponse> recipesResponse = recipes.elements().stream()
             .map(recipeMapper::from)
             .toList();
-        return new Page<>(recipesResponse, recipes.totalElements());
+        return new Page<>(recipesResponse, recipes.pages());
     }
 }

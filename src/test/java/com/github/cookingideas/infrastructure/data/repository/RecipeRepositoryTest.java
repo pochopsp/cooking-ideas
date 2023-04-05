@@ -1,4 +1,4 @@
-package com.github.cookingideas.infrastructure.repository;
+package com.github.cookingideas.infrastructure.data.repository;
 
 import com.github.cookingideas.RecordFactory;
 import com.github.cookingideas.domain.entity.Recipe;
@@ -10,28 +10,28 @@ import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class InMemoryRecipeRepositoryTest {
+abstract class RecipeRepositoryTest {
 
     private final RecipeRepository repository;
-    private final EasyRandom easyRandom;
+    protected final EasyRandom easyRandom;
 
-    public InMemoryRecipeRepositoryTest() {
-        repository = new InMemoryRecipeRepository(new HashMap<>());
+    public RecipeRepositoryTest(Supplier<RecipeRepository> recipeRepositorySupplier) {
+        repository = recipeRepositorySupplier.get();
         EasyRandomParameters parameters = new EasyRandomParameters()
             .objectFactory(new RecordFactory())
+            .stringLengthRange(1, 25)
             .randomize(Recipe.Id.class, repository::nextId);
         easyRandom = new EasyRandom(parameters);
     }
 
     @Test
-    @DisplayName("If the storage is empty, first Id is 1")
-    void idForEmptyStorage() {
+    @DisplayName("First Id is 1")
+    void firstId() {
         Recipe.Id expected = new Recipe.Id(1L);
         assertThat(repository.nextId()).isEqualTo(expected);
     }
@@ -53,26 +53,15 @@ class InMemoryRecipeRepositoryTest {
     }
 
     @Test
-    @DisplayName("If the storage is not empty, first Id is next long")
-    void idForNotEmptyStorage() {
-        Recipe.Id recipeId = new Recipe.Id(1L);
-        Recipe recipe = new Recipe(
-            recipeId,
-            "a name",
-            "a description",
-            easyRandom.objects(Recipe.Ingredient.class, 5).toList()
-        );
-        Map<Recipe.Id, Recipe> storage = Map.of(recipeId, recipe);
-        RecipeRepository repository = new InMemoryRecipeRepository(storage);
-
-        Recipe.Id expected = new Recipe.Id(2L);
-        assertThat(repository.nextId()).isEqualTo(expected);
-    }
-
-    @Test
     @DisplayName("save and retrieve a Recipe")
     void storeAndRetrieve() {
-        Recipe recipe = easyRandom.nextObject(Recipe.class);
+        List<Recipe.Ingredient> ingredients = easyRandom.objects(Recipe.Ingredient.class, 5).toList();
+        Recipe recipe = new Recipe(
+            easyRandom.nextObject(Recipe.Id.class),
+            easyRandom.nextObject(String.class),
+            easyRandom.nextObject(String.class),
+            ingredients
+        );
         repository.store(recipe);
 
         assertThat(repository.get(recipe.id()))
@@ -83,7 +72,13 @@ class InMemoryRecipeRepositoryTest {
     @Test
     @DisplayName("modify a Recipe")
     void modifyARecipe() {
-        Recipe recipe = easyRandom.nextObject(Recipe.class);
+        List<Recipe.Ingredient> ingredients = easyRandom.objects(Recipe.Ingredient.class, 5).toList();
+        Recipe recipe = new Recipe(
+            easyRandom.nextObject(Recipe.Id.class),
+            easyRandom.nextObject(String.class),
+            easyRandom.nextObject(String.class),
+            ingredients
+        );
         repository.store(recipe);
         Recipe modifiedRecipe = new Recipe(recipe.id(), "new name", recipe.description(), recipe.ingredients());
 
@@ -112,19 +107,19 @@ class InMemoryRecipeRepositoryTest {
         List<Recipe> expectedResults4 = recipes.subList(15, 19);
 
         Page<Recipe> page1 = repository.list(new PageRequest(1, 5));
-        assertThat(page1.totalElements()).isEqualTo(recipes.size());
+        assertThat(page1.pages()).isEqualTo(4);
         assertThat(page1.elements()).usingRecursiveComparison().isEqualTo(expectedResults1);
 
         Page<Recipe> page2 = repository.list(new PageRequest(2, 5));
-        assertThat(page2.totalElements()).isEqualTo(recipes.size());
+        assertThat(page2.pages()).isEqualTo(4);
         assertThat(page2.elements()).usingRecursiveComparison().isEqualTo(expectedResults2);
 
         Page<Recipe> page3 = repository.list(new PageRequest(3, 5));
-        assertThat(page3.totalElements()).isEqualTo(recipes.size());
+        assertThat(page3.pages()).isEqualTo(4);
         assertThat(page3.elements()).usingRecursiveComparison().isEqualTo(expectedResults3);
 
         Page<Recipe> page4 = repository.list(new PageRequest(4, 5));
-        assertThat(page4.totalElements()).isEqualTo(recipes.size());
+        assertThat(page4.pages()).isEqualTo(4);
         assertThat(page4.elements()).usingRecursiveComparison().isEqualTo(expectedResults4);
     }
 
@@ -135,7 +130,7 @@ class InMemoryRecipeRepositoryTest {
         recipes.forEach(repository::store);
 
         Page<Recipe> page = repository.list(new PageRequest(5, 5));
-        assertThat(page.totalElements()).isEqualTo(recipes.size());
+        assertThat(page.pages()).isEqualTo(4);
         assertThat(page.elements()).isEmpty();
     }
 
@@ -143,7 +138,7 @@ class InMemoryRecipeRepositoryTest {
     @DisplayName("return empty page if no elements are stored")
     void emptyPageNoElements() {
         Page<Recipe> page = repository.list(new PageRequest(1, 5));
-        assertThat(page.totalElements()).isEqualTo(0);
+        assertThat(page.pages()).isEqualTo(0);
         assertThat(page.elements()).isEmpty();
     }
 

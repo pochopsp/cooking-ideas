@@ -7,13 +7,23 @@ import io.restassured.RestAssured;
 import io.restassured.common.mapper.TypeRef;
 import org.apache.http.HttpStatus;
 import org.jeasy.random.EasyRandom;
+import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 import static io.restassured.RestAssured.get;
@@ -23,23 +33,52 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@Testcontainers
 public class RecipeControllerTest {
+
+    @Container
+    private static final PostgreSQLContainer<?> database =
+        new PostgreSQLContainer<>("postgres:15.2-alpine").waitingFor(Wait.forListeningPort());
+    private static final PGSimpleDataSource dataSource = new PGSimpleDataSource();
+    private static final TypeRef<Page<RecipeResponse>> pageResponseTypeRef = new PageResponseTypeRef();
+
+    @DynamicPropertySource
+    static void registerMySQLProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", database::getJdbcUrl);
+        registry.add("spring.datasource.username", database::getUsername);
+        registry.add("spring.datasource.password", database::getPassword);
+        dataSource.setURL(database.getJdbcUrl());
+        dataSource.setUser(database.getUsername());
+        dataSource.setPassword(database.getPassword());
+        dataSource.setDatabaseName(database.getDatabaseName());
+    }
 
     @Value(value = "${local.server.port}")
     private int port;
-
-    private final TypeRef<Page<RecipeResponse>> pageResponseTypeRef = new PageResponseTypeRef();
+    private final EasyRandom easyRandom;
 
     @BeforeEach
     void setup() {
         RestAssured.port = port;
+        try (Connection con = dataSource.getConnection(); java.sql.Statement stmt = con.createStatement()) {
+            stmt.executeUpdate("DELETE FROM ingredients");
+            stmt.executeUpdate("DELETE FROM recipe");
+            stmt.executeUpdate("ALTER SEQUENCE recipe_id_seq RESTART;");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public RecipeControllerTest() {
+        EasyRandomParameters parameters = new EasyRandomParameters().stringLengthRange(1, 25);
+        easyRandom = new EasyRandom(parameters);
     }
 
     @Test
     @DisplayName("Store and return a recipe")
     public void greetingShouldReturnDefaultMessage() {
 
-        RecipeRequest recipeRequest = new EasyRandom().nextObject(RecipeRequest.class);
+        RecipeRequest recipeRequest = easyRandom.nextObject(RecipeRequest.class);
         RecipeResponse savedRecipe = saveRecipe(recipeRequest);
 
         RecipeResponse retrievedRecipe = get("/recipe/" + savedRecipe.getId()).then()
@@ -62,7 +101,7 @@ public class RecipeControllerTest {
     @Test
     @DisplayName("Return a page of recipes")
     public void page() {
-        List<RecipeResponse> recipes = new EasyRandom().objects(RecipeRequest.class, 6)
+        List<RecipeResponse> recipes = easyRandom.objects(RecipeRequest.class, 6)
             .map(RecipeControllerTest::saveRecipe)
             .toList();
 
@@ -78,7 +117,7 @@ public class RecipeControllerTest {
             .body(matchesJsonSchemaInClasspath("responses/recipePage-schema.json"))
             .extract()
             .as(pageResponseTypeRef);
-        assertThat(page1.totalElements()).isEqualTo(recipes.size());
+        assertThat(page1.pages()).isEqualTo(2);
         assertThat(page1.elements()).usingRecursiveComparison().isEqualTo(expectedResults1);
 
         Page<RecipeResponse> page2 = given()
@@ -90,7 +129,7 @@ public class RecipeControllerTest {
             .body(matchesJsonSchemaInClasspath("responses/recipePage-schema.json"))
             .extract()
             .as(pageResponseTypeRef);
-        assertThat(page2.totalElements()).isEqualTo(recipes.size());
+        assertThat(page2.pages()).isEqualTo(2);
         assertThat(page2.elements()).usingRecursiveComparison().isEqualTo(expectedResults2);
 
     }

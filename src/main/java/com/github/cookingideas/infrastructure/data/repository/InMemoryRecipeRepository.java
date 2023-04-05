@@ -1,4 +1,4 @@
-package com.github.cookingideas.infrastructure.repository;
+package com.github.cookingideas.infrastructure.data.repository;
 
 import com.github.cookingideas.domain.entity.Recipe;
 import com.github.cookingideas.domain.repository.Page;
@@ -45,7 +45,9 @@ public class InMemoryRecipeRepository implements RecipeRepository {
             .map(Map.Entry::getValue)
             .toList();
 
-        return new Page<>(result, recipes.size());
+        double pages = recipes.size() / (double) pageRequest.size();
+
+        return new Page<>(result, (int) Math.ceil(pages));
     }
 
     @Override

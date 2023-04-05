@@ -17,3 +17,15 @@ $ docker-compose up -d
 ```
 
 then run the spring app as usual
+
+## Contributing
+
+### Using colima on osx
+
+To be able to run tests using testcontainer on colima, rememnber to define following evirontment variables:
+
+```shell
+export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+export TESTCONTAINERS_RYUK_DISABLED=true
+```
