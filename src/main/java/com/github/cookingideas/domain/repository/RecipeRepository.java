@@ -6,9 +6,11 @@ import java.util.Optional;
 
 public interface RecipeRepository {
 
-    Recipe.Id getNextId();
+    Recipe.Id nextId();
 
     Optional<Recipe> get(Recipe.Id id);
+
+    Page<Recipe> list(int offset, int size);
 
     void store(Recipe recipe);
 }

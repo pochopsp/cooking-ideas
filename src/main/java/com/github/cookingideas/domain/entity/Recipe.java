@@ -14,4 +14,7 @@ public record Recipe(Recipe.Id id, String name, String description, List<Ingredi
             }
         }
     }
+
+    public record Ingredient(String name, int quantity, String measureUnit) {
+    }
 }
