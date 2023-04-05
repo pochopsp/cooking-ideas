@@ -6,6 +6,8 @@ import com.github.cookingideas.domain.repository.PageRequest;
 import com.github.cookingideas.domain.repository.RecipeRepository;
 import com.github.cookingideas.infrastructure.data.entity.DbIngredient;
 import com.github.cookingideas.infrastructure.data.entity.DbRecipe;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,25 +15,24 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class DatabaseRecipeRepository implements RecipeRepository {
+interface DatabaseRecipeRepository extends RecipeRepository, JpaRepository<DbRecipe, Long> {
 
-    private final SpringRecipeRepository internalRepository;
+    @Query(value = "SELECT nextval('recipe_id_seq')", nativeQuery = true)
+    long getNextSeriesId();
 
-    public DatabaseRecipeRepository(SpringRecipeRepository internalRepository) {
-        this.internalRepository = internalRepository;
+    Optional<DbRecipe> findDbRecipeById(long id);
+
+    default Recipe.Id nextId() {
+        return new Recipe.Id(getNextSeriesId());
     }
 
-    public Recipe.Id nextId() {
-        return new Recipe.Id(internalRepository.getNextSeriesId());
+    default Optional<Recipe> get(Recipe.Id id) {
+        return findDbRecipeById(id.value()).map(this::toRecipe);
     }
 
-    public Optional<Recipe> get(Recipe.Id id) {
-        return internalRepository.findDbRecipeById(id.value()).map(this::toRecipe);
-    }
-
-    public Page<Recipe> list(PageRequest pageRequest) {
+    default Page<Recipe> list(PageRequest pageRequest) {
         org.springframework.data.domain.Page<DbRecipe> page =
-            internalRepository.findAll(org.springframework.data.domain.PageRequest.of(pageRequest.page() - 1, pageRequest.size()));
+            findAll(org.springframework.data.domain.PageRequest.of(pageRequest.page() - 1, pageRequest.size()));
 
         List<Recipe> recipes = page.stream().map(this::toRecipe).toList();
         int elements = page.getTotalPages();
@@ -39,7 +40,7 @@ public class DatabaseRecipeRepository implements RecipeRepository {
     }
 
     @Transactional
-    public void store(Recipe recipe) {
+    default void store(Recipe recipe) {
         DbRecipe dbRecipe = new DbRecipe();
         dbRecipe.setId(recipe.id().value());
         dbRecipe.setName(recipe.name());
@@ -53,7 +54,7 @@ public class DatabaseRecipeRepository implements RecipeRepository {
             return dbIngredient;
         }).toList());
 
-        internalRepository.save(dbRecipe);
+        save(dbRecipe);
     }
 
     private Recipe toRecipe(DbRecipe dbRecipe) {
