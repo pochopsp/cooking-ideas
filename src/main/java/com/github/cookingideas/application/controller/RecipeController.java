@@ -5,6 +5,7 @@ import com.github.cookingideas.application.dto.RecipeResponse;
 import com.github.cookingideas.application.mapper.RecipeMapper;
 import com.github.cookingideas.domain.entity.Recipe;
 import com.github.cookingideas.domain.repository.Page;
+import com.github.cookingideas.domain.repository.PageRequest;
 import com.github.cookingideas.domain.service.RecipeService;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,8 +40,8 @@ public class RecipeController {
     }
 
     @GetMapping
-    public Page<RecipeResponse> getPage(@RequestParam int offset, @RequestParam int size) {
-        Page<Recipe> recipes = recipeService.list(offset, size);
+    public Page<RecipeResponse> getPage(@RequestParam int page, @RequestParam int size) {
+        Page<Recipe> recipes = recipeService.list(new PageRequest(page, size));
         List<RecipeResponse> recipesResponse = recipes.elements().stream()
             .map(recipeMapper::from)
             .toList();

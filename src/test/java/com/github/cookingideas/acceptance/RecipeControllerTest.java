@@ -70,7 +70,7 @@ public class RecipeControllerTest {
         List<RecipeResponse> expectedResults2 = recipes.subList(5, 6);
 
         Page<RecipeResponse> page1 = given()
-            .param("offset", 0)
+            .param("page", 1)
             .param("size", 5)
             .get("/recipe").then()
             .statusCode(HttpStatus.SC_OK)
@@ -82,7 +82,7 @@ public class RecipeControllerTest {
         assertThat(page1.elements()).usingRecursiveComparison().isEqualTo(expectedResults1);
 
         Page<RecipeResponse> page2 = given()
-            .param("offset", 5)
+            .param("page", 2)
             .param("size", 5)
             .get("/recipe").then()
             .statusCode(HttpStatus.SC_OK)

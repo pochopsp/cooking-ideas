@@ -3,6 +3,7 @@ package com.github.cookingideas.domain.service;
 import com.github.cookingideas.RecordFactory;
 import com.github.cookingideas.domain.entity.Recipe;
 import com.github.cookingideas.domain.repository.Page;
+import com.github.cookingideas.domain.repository.PageRequest;
 import com.github.cookingideas.domain.repository.RecipeRepository;
 import com.github.cookingideas.infrastructure.repository.InMemoryRecipeRepository;
 import org.jeasy.random.EasyRandom;
@@ -56,19 +57,19 @@ class RecipeServiceTest {
         List<Recipe> expectedResults3 = recipes.subList(10, 15);
         List<Recipe> expectedResults4 = recipes.subList(15, 19);
 
-        Page<Recipe> page1 = recipeService.list(0, 5);
+        Page<Recipe> page1 = recipeService.list(new PageRequest(1, 5));
         assertThat(page1.totalElements()).isEqualTo(recipes.size());
         assertThat(page1.elements()).usingRecursiveComparison().isEqualTo(expectedResults1);
 
-        Page<Recipe> page2 = recipeService.list(5, 5);
+        Page<Recipe> page2 = recipeService.list(new PageRequest(2, 5));
         assertThat(page2.totalElements()).isEqualTo(recipes.size());
         assertThat(page2.elements()).usingRecursiveComparison().isEqualTo(expectedResults2);
 
-        Page<Recipe> page3 = recipeService.list(10, 5);
+        Page<Recipe> page3 = recipeService.list(new PageRequest(3, 5));
         assertThat(page3.totalElements()).isEqualTo(recipes.size());
         assertThat(page3.elements()).usingRecursiveComparison().isEqualTo(expectedResults3);
 
-        Page<Recipe> page4 = recipeService.list(15, 5);
+        Page<Recipe> page4 = recipeService.list(new PageRequest(4, 5));
         assertThat(page4.totalElements()).isEqualTo(recipes.size());
         assertThat(page4.elements()).usingRecursiveComparison().isEqualTo(expectedResults4);
     }
@@ -80,7 +81,7 @@ class RecipeServiceTest {
             .mapToObj(operand -> storeRandomRecipe())
             .toList();
 
-        Page<Recipe> page = recipeService.list(20, 5);
+        Page<Recipe> page = recipeService.list(new PageRequest(5, 5));
         assertThat(page.totalElements()).isEqualTo(recipes.size());
         assertThat(page.elements()).isEmpty();
     }
@@ -88,7 +89,7 @@ class RecipeServiceTest {
     @Test
     @DisplayName("return empty page if no elements are stored")
     void emptyPageNoElements() {
-        Page<Recipe> page = recipeService.list(0, 5);
+        Page<Recipe> page = recipeService.list(new PageRequest(1, 5));
         assertThat(page.totalElements()).isEqualTo(0);
         assertThat(page.elements()).isEmpty();
     }

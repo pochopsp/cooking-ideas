@@ -10,7 +10,7 @@ public interface RecipeRepository {
 
     Optional<Recipe> get(Recipe.Id id);
 
-    Page<Recipe> list(int offset, int size);
+    Page<Recipe> list(PageRequest pageRequest);
 
     void store(Recipe recipe);
 }
