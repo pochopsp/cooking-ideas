@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class RecipeTest {
-    
+
     @Test
     @DisplayName("Throw an error if the id is not valid")
     void throwErrorIfIdIsNotValid() {

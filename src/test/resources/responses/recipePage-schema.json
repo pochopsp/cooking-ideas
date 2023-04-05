@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "elements": {
+      "type": "array",
+      "items": {
+        "$ref": "recipe-schema.json"
+      }
+    },
+    "totalElements": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "elements",
+    "totalElements"
+  ],
+  "additionalProperties": false
+}
