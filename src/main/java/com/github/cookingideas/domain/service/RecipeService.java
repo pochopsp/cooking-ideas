@@ -2,6 +2,7 @@ package com.github.cookingideas.domain.service;
 
 import com.github.cookingideas.domain.entity.Recipe;
 import com.github.cookingideas.domain.repository.Page;
+import com.github.cookingideas.domain.repository.PageRequest;
 import com.github.cookingideas.domain.repository.RecipeRepository;
 
 import java.util.List;
@@ -19,8 +20,8 @@ public class RecipeService {
         return repository.get(id);
     }
 
-    public Page<Recipe> list(int offset, int size) {
-        return repository.list(offset, size);
+    public Page<Recipe> list(PageRequest pageRequest) {
+        return repository.list(pageRequest);
     }
 
     public Recipe store(String name, String description, List<Recipe.Ingredient> ingredients) {

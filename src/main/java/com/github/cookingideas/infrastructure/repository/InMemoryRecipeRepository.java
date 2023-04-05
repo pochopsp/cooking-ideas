@@ -2,6 +2,7 @@ package com.github.cookingideas.infrastructure.repository;
 
 import com.github.cookingideas.domain.entity.Recipe;
 import com.github.cookingideas.domain.repository.Page;
+import com.github.cookingideas.domain.repository.PageRequest;
 import com.github.cookingideas.domain.repository.RecipeRepository;
 
 import java.util.Comparator;
@@ -35,11 +36,12 @@ public class InMemoryRecipeRepository implements RecipeRepository {
     }
 
     @Override
-    public Page<Recipe> list(int offset, int size) {
+    public Page<Recipe> list(PageRequest pageRequest) {
+        int offset = (pageRequest.page() - 1) * pageRequest.size();
         List<Recipe> result = recipes.entrySet().stream()
             .sorted(Comparator.comparingLong(entry -> entry.getKey().value()))
             .skip(offset)
-            .limit(size)
+            .limit(pageRequest.size())
             .map(Map.Entry::getValue)
             .toList();
 

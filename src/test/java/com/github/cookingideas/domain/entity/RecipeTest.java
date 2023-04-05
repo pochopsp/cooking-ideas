@@ -15,6 +15,6 @@ class RecipeTest {
             .isThrownBy(() -> new Recipe.Id(-1L));
 
         assertThatExceptionOfType(IllegalIdException.class)
-            .isThrownBy(() -> new Recipe.Id(-0L));
+            .isThrownBy(() -> new Recipe.Id(0L));
     }
 }
