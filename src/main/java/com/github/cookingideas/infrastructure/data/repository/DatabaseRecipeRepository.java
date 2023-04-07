@@ -21,7 +21,7 @@ interface DatabaseRecipeRepository extends RecipeRepository, JpaRepository<DbRec
     long getNextSeriesId();
 
     Optional<DbRecipe> findDbRecipeById(long id);
-
+    
     default Recipe.Id nextId() {
         return new Recipe.Id(getNextSeriesId());
     }

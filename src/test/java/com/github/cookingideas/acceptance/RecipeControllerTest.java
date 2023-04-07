@@ -1,5 +1,7 @@
 package com.github.cookingideas.acceptance;
 
+import com.github.cookingideas.application.dto.IngredientRequest;
+import com.github.cookingideas.application.dto.IngredientResponse;
 import com.github.cookingideas.application.dto.RecipeRequest;
 import com.github.cookingideas.application.dto.RecipeResponse;
 import com.github.cookingideas.domain.repository.Page;
@@ -93,37 +95,34 @@ public class RecipeControllerTest {
 
         RecipeRequest recipeRequest = easyRandom.nextObject(RecipeRequest.class);
         RecipeResponse savedRecipe = saveRecipe(recipeRequest);
+        RecipeResponse retrievedRecipe = retrieveRecipe(savedRecipe.getId());
 
-        RecipeResponse retrievedRecipe = when().get("/recipe/" + savedRecipe.getId()).then()
-            .assertThat()
-            .statusCode(OK.value())
-            .body(matchesJsonSchemaInClasspath("responses/recipe-schema.json"))
-            .extract()
-            .as(RecipeResponse.class);
+        RecipeResponse expectedRecipe = buildExpectedResponse(1L, recipeRequest);
 
-        assertThat(retrievedRecipe).usingRecursiveComparison().isEqualTo(savedRecipe);
+        assertThat(savedRecipe).usingRecursiveComparison().isEqualTo(expectedRecipe);
+        assertThat(retrievedRecipe).usingRecursiveComparison().isEqualTo(expectedRecipe);
     }
 
     @Test
     @DisplayName("Modify a recipe")
     public void modifyARecipe() {
-
         RecipeRequest recipeRequest = easyRandom.nextObject(RecipeRequest.class);
-        saveRecipe(recipeRequest);
+        long savedRecipeId = saveRecipe(recipeRequest).getId();
 
-        recipeRequest.setName(recipeRequest.getName() + "new");
-        recipeRequest.setDescription(recipeRequest.getDescription() + "new");
-        recipeRequest.setIngredients(recipeRequest.getIngredients().subList(0, recipeRequest.getIngredients().size() - 1));
-        RecipeResponse savedRecipe = saveRecipe(recipeRequest);
+        String newName = recipeRequest.getName() + "new";
+        String newDescription = recipeRequest.getDescription() + "new";
+        List<IngredientRequest> newIngredients = recipeRequest.getIngredients().subList(0, recipeRequest.getIngredients().size() - 1);
+        RecipeRequest modifiedRecipeRequest = new RecipeRequest();
+        modifiedRecipeRequest.setName(newName);
+        modifiedRecipeRequest.setDescription(newDescription);
+        modifiedRecipeRequest.setIngredients(newIngredients);
 
-        RecipeResponse retrievedRecipe = when().get("/recipe/" + savedRecipe.getId()).then()
-            .assertThat()
-            .statusCode(OK.value())
-            .body(matchesJsonSchemaInClasspath("responses/recipe-schema.json"))
-            .extract()
-            .as(RecipeResponse.class);
+        RecipeResponse modifiedRecipe = updateRecipe(savedRecipeId, modifiedRecipeRequest);
+        RecipeResponse retrievedRecipe = retrieveRecipe(savedRecipeId);
+        RecipeResponse expectedRecipe = buildExpectedResponse(savedRecipeId, modifiedRecipeRequest);
 
-        assertThat(retrievedRecipe).usingRecursiveComparison().isEqualTo(savedRecipe);
+        assertThat(modifiedRecipe).usingRecursiveComparison().isEqualTo(expectedRecipe);
+        assertThat(retrievedRecipe).usingRecursiveComparison().isEqualTo(expectedRecipe);
     }
 
     @Test
@@ -195,6 +194,50 @@ public class RecipeControllerTest {
             .when()
             .post("/recipe")
             .as(RecipeResponse.class);
+    }
+
+    private static RecipeResponse updateRecipe(long id, RecipeRequest recipeRequest) {
+        return given()
+            .accept(APPLICATION_JSON_VALUE)
+            .and()
+            .contentType(APPLICATION_JSON_VALUE)
+            .and()
+            .body(recipeRequest)
+            .when()
+            .put("/recipe/" + id)
+            .as(RecipeResponse.class);
+    }
+
+    private static RecipeResponse retrieveRecipe(long id) {
+        return when().get("/recipe/" + id).then()
+            .assertThat()
+            .statusCode(OK.value())
+            .body(matchesJsonSchemaInClasspath("responses/recipe-schema.json"))
+            .extract()
+            .as(RecipeResponse.class);
+    }
+
+    private static RecipeResponse buildExpectedResponse(long id, RecipeRequest recipeRequest) {
+        List<IngredientResponse> data = recipeRequest.getIngredients().stream()
+            .map(ingredientRequest -> {
+                IngredientResponse ingredientResponse = new IngredientResponse();
+                ingredientResponse.setName(ingredientRequest.getName());
+                ingredientResponse.setQuantity(ingredientRequest.getQuantity());
+                ingredientResponse.setMeasureUnit(ingredientRequest.getMeasureUnit());
+                return ingredientResponse;
+            })
+            .toList();
+
+        RecipeResponse.IngredientList ingredientList = new RecipeResponse.IngredientList();
+        ingredientList.setData(data);
+
+        RecipeResponse expectedRecipe = new RecipeResponse();
+        expectedRecipe.setId(id);
+        expectedRecipe.setName(recipeRequest.getName());
+        expectedRecipe.setDescription(recipeRequest.getDescription());
+        expectedRecipe.setIngredients(ingredientList);
+
+        return expectedRecipe;
     }
 
     private static class PageResponseTypeRef extends TypeRef<Page<RecipeResponse>> {

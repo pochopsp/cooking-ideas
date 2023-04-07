@@ -1,6 +1,6 @@
 package com.github.cookingideas.domain.entity;
 
-import com.github.cookingideas.domain.exception.IllegalIdException;
+import com.github.cookingideas.domain.exception.ValidationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,10 +11,10 @@ class RecipeTest {
     @Test
     @DisplayName("Throw an error if the id is not valid")
     void throwErrorIfIdIsNotValid() {
-        assertThatExceptionOfType(IllegalIdException.class)
+        assertThatExceptionOfType(ValidationException.class)
             .isThrownBy(() -> new Recipe.Id(-1L));
 
-        assertThatExceptionOfType(IllegalIdException.class)
+        assertThatExceptionOfType(ValidationException.class)
             .isThrownBy(() -> new Recipe.Id(0L));
     }
 }

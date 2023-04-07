@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,6 +49,15 @@ public class RecipeController {
             .map(ingredient -> new Recipe.Ingredient(ingredient.getName(), ingredient.getQuantity(), ingredient.getMeasureUnit()))
             .toList();
         Recipe recipe = recipeService.store(recipeRequest.getName(), recipeRequest.getDescription(), ingredients);
+        return recipeMapper.from(recipe);
+    }
+
+    @PutMapping("/{id}")
+    public RecipeResponse update(@PathVariable long id, @RequestBody RecipeRequest recipeRequest) {
+        List<Recipe.Ingredient> ingredients = recipeRequest.getIngredients().stream()
+            .map(ingredient -> new Recipe.Ingredient(ingredient.getName(), ingredient.getQuantity(), ingredient.getMeasureUnit()))
+            .toList();
+        Recipe recipe = recipeService.update(new Recipe.Id(id), recipeRequest.getName(), recipeRequest.getDescription(), ingredients);
         return recipeMapper.from(recipe);
     }
 

@@ -1,6 +1,5 @@
 package com.github.cookingideas.application.controller;
 
-import com.github.cookingideas.domain.exception.IllegalIdException;
 import com.github.cookingideas.domain.exception.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -13,7 +12,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public void handleException(IllegalIdException e, WebRequest request) {
+    public void handleException(ValidationException e, WebRequest request) {
     }
 
 }

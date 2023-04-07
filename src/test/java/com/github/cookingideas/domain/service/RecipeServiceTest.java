@@ -2,6 +2,7 @@ package com.github.cookingideas.domain.service;
 
 import com.github.cookingideas.RecordFactory;
 import com.github.cookingideas.domain.entity.Recipe;
+import com.github.cookingideas.domain.exception.ValidationException;
 import com.github.cookingideas.domain.repository.Page;
 import com.github.cookingideas.domain.repository.PageRequest;
 import com.github.cookingideas.domain.repository.RecipeRepository;
@@ -15,7 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class RecipeServiceTest {
 
@@ -25,7 +28,9 @@ class RecipeServiceTest {
     public RecipeServiceTest() {
         RecipeRepository repository = new InMemoryRecipeRepository(new HashMap<>());
         recipeService = new RecipeService(repository);
-        EasyRandomParameters parameters = new EasyRandomParameters().objectFactory(new RecordFactory());
+        EasyRandomParameters parameters = new EasyRandomParameters()
+            .objectFactory(new RecordFactory())
+            .collectionSizeRange(1, 10);
         easyRandom = new EasyRandom(parameters);
     }
 
@@ -43,6 +48,32 @@ class RecipeServiceTest {
     @DisplayName("Return empty optional if the recipe is not found")
     void getReturnEmpty() {
         assertThat(recipeService.get(new Recipe.Id(1L))).isNotPresent();
+    }
+
+    @Test
+    @DisplayName("Modify a Recipe")
+    void modifyRecipe() {
+        Recipe recipe = storeRandomRecipe();
+        String newName = recipe.name() + "new";
+        String newDescription = recipe.description() + "new";
+        List<Recipe.Ingredient> newIngredients = recipe.ingredients().subList(0, recipe.ingredients().size() - 1);
+
+        Recipe updatedRecipe = recipeService.update(recipe.id(), newName, newDescription, newIngredients);
+
+        Recipe expectedRecipe = new Recipe(recipe.id(), newName, newDescription, newIngredients);
+
+        assertThat(updatedRecipe).usingRecursiveComparison().isEqualTo(expectedRecipe);
+        assertThat(recipeService.get(recipe.id())).isPresent().get().usingRecursiveComparison().isEqualTo(expectedRecipe);
+    }
+
+    @Test
+    @DisplayName("Throw an error if try to modify a not existent Recipe")
+    void modifyNotExistentRecipe() {
+        Recipe.Id id = new Recipe.Id(1L);
+        assertThatExceptionOfType(ValidationException.class).isThrownBy(
+            () -> recipeService.update(id, "a name", "a description", emptyList())
+        );
+        assertThat(recipeService.get(id)).isNotPresent();
     }
 
     @Test
@@ -77,9 +108,7 @@ class RecipeServiceTest {
     @Test
     @DisplayName("return empty page if elements does not exists")
     void emptyPage() {
-        List<Recipe> recipes = IntStream.range(0, 20)
-            .mapToObj(operand -> storeRandomRecipe())
-            .toList();
+        IntStream.range(0, 20).forEach(operand -> storeRandomRecipe());
 
         Page<Recipe> page = recipeService.list(new PageRequest(5, 5));
         assertThat(page.pages()).isEqualTo(4);

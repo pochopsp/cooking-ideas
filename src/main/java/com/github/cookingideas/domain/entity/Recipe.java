@@ -10,7 +10,7 @@ public record Recipe(Recipe.Id id, String name, String description, List<Ingredi
     public record Id(long value) {
         public Id {
             if (value <= 0) {
-                throw new IllegalRecipeIdException();
+                throw new IllegalRecipeIdException(value);
             }
         }
     }
