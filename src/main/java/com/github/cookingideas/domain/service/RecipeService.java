@@ -35,6 +35,7 @@ public class RecipeService {
     }
 
     public Recipe update(Recipe.Id id, String name, String description, List<Recipe.Ingredient> ingredients) {
+        // TODO: not transactional!!
         if (get(id).isEmpty()) {
             throw new RecipeNotFoundException(id.value());
         }

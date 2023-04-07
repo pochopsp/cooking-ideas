@@ -6,6 +6,7 @@ import com.github.cookingideas.domain.repository.PageRequest;
 import com.github.cookingideas.domain.repository.RecipeRepository;
 import com.github.cookingideas.infrastructure.data.entity.DbIngredient;
 import com.github.cookingideas.infrastructure.data.entity.DbRecipe;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -21,6 +22,10 @@ interface DatabaseRecipeRepository extends RecipeRepository, JpaRepository<DbRec
     long getNextSeriesId();
 
     Optional<DbRecipe> findDbRecipeById(long id);
+
+    @Override
+    @Transactional(noRollbackFor = EmptyResultDataAccessException.class)
+    void deleteById(Long id);
     
     default Recipe.Id nextId() {
         return new Recipe.Id(getNextSeriesId());
@@ -59,7 +64,10 @@ interface DatabaseRecipeRepository extends RecipeRepository, JpaRepository<DbRec
 
     @Transactional
     default void delete(Recipe.Id id) {
-        deleteById(id.value());
+        try {
+            deleteById(id.value());
+        } catch (EmptyResultDataAccessException ignored) {
+        }
     }
 
     private Recipe toRecipe(DbRecipe dbRecipe) {

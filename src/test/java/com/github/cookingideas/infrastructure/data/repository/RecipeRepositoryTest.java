@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 abstract class RecipeRepositoryTest {
 
@@ -109,6 +110,12 @@ abstract class RecipeRepositoryTest {
 
         repository.delete(recipe.id());
         assertThat(repository.get(recipe.id())).isNotPresent();
+    }
+
+    @Test
+    @DisplayName("do not throw errors if try to delete a not existent Recipe")
+    void doNotThrowOnDelete() {
+        assertThatNoException().isThrownBy(() -> repository.delete(new Recipe.Id(1L)));
     }
 
     @Test
